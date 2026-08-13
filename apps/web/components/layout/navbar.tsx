@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Bell, Sun, Moon, Command, ChevronDown } from "lucide-react";
-import { useTheme } from "next-themes";
+import { Search, Bell, Command, ChevronDown } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,7 +16,6 @@ import { CommandPalette } from "./command-palette";
 import { Badge } from "@/components/ui/badge";
 
 export function Navbar() {
-  const { theme, setTheme } = useTheme();
   const [commandOpen, setCommandOpen] = useState(false);
   const router = useRouter();
 
@@ -43,20 +41,6 @@ export function Navbar() {
             <Badge className="absolute -top-1 -right-1 w-4 h-4 p-0 flex items-center justify-center text-[10px] bg-indigo-600 text-white border-2 border-white dark:border-gray-950">
               3
             </Badge>
-          </Button>
-
-          {/* Theme toggle */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 rounded-lg"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          >
-            {theme === "dark" ? (
-              <Sun className="w-4 h-4 text-gray-500" />
-            ) : (
-              <Moon className="w-4 h-4 text-gray-500" />
-            )}
           </Button>
 
           {/* Profile */}
