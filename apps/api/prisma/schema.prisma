@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Company {
+  id             String          @id @default(cuid())
+  name           String
+  industry       String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  purchaseOrders PurchaseOrder[]
+  users          User[]
+  vendors        Vendor[]
+}
+
+model User {
+  id           String   @id @default(cuid())
+  companyId    String
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         UserRole @default(EMPLOYEE)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  company      Company  @relation(fields: [companyId], references: [id])
+}
+
+model Vendor {
+  id             String          @id @default(cuid())
+  companyId      String
+  name           String
+  email          String?
+  phone          String
+  address        String?
+  status         VendorStatus    @default(ACTIVE)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  calls          Call[]
+  purchaseOrders PurchaseOrder[]
+  company        Company         @relation(fields: [companyId], references: [id])
+}
+
+model PurchaseOrder {
+  id               String              @id @default(cuid())
+  companyId        String
+  vendorId         String
+  poNumber         String              @unique
+  description      String?
+  amount           Float
+  expectedDelivery DateTime?
+  status           PurchaseOrderStatus @default(PENDING)
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  calls            Call[]
+  company          Company             @relation(fields: [companyId], references: [id])
+  vendor           Vendor              @relation(fields: [vendorId], references: [id])
+}
+
+model Call {
+  id              String        @id @default(cuid())
+  purchaseOrderId String
+  vendorId        String
+  status          CallStatus    @default(PENDING)
+  transcript      String?
+  startedAt       DateTime?
+  endedAt         DateTime?
+  duration        Int?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+  vendor          Vendor        @relation(fields: [vendorId], references: [id])
+  result          CallResult?
+}
+
+model CallResult {
+  id           String    @id @default(cuid())
+  callId       String    @unique
+  accepted     Boolean?
+  deliveryDate DateTime?
+  quantity     Int?
+  delayReason  String?
+  summary      String?
+  confidence   Float?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  call         Call      @relation(fields: [callId], references: [id])
+}
+
+enum UserRole {
+  ADMIN
+  EMPLOYEE
+}
+
+enum VendorStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum PurchaseOrderStatus {
+  PENDING
+  CONFIRMED
+  DELAYED
+  CANCELLED
+}
+
+enum CallStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}

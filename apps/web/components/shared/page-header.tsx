@@ -1,0 +1,24 @@
+import { cn } from "@/lib/utils";
+
+interface PageHeaderProps {
+  title: string;
+  description?: string;
+  children?: React.ReactNode;
+  className?: string;
+}
+
+export function PageHeader({ title, description, children, className }: PageHeaderProps) {
+  return (
+    <div className={cn("flex items-start justify-between", className)}>
+      <div>
+        <h1 className="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">
+          {title}
+        </h1>
+        {description && (
+          <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">{description}</p>
+        )}
+      </div>
+      {children && <div className="flex items-center gap-2">{children}</div>}
+    </div>
+  );
+}
