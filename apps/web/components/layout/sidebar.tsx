@@ -66,8 +66,8 @@ export function Sidebar() {
         {navItems.map((item) => {
           const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
           return collapsed ? (
-            <Tooltip key={item.href} delayDuration={0}>
-              <TooltipTrigger asChild>
+            <Tooltip key={item.href}>
+              <TooltipTrigger render={
                 <Link
                   href={item.href}
                   className={cn(
@@ -79,7 +79,7 @@ export function Sidebar() {
                 >
                   <item.icon className="w-4 h-4" />
                 </Link>
-              </TooltipTrigger>
+              } />
               <TooltipContent side="right">{item.label}</TooltipContent>
             </Tooltip>
           ) : (

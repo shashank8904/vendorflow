@@ -145,15 +145,15 @@ export default function PurchaseOrdersPage() {
                 </td>
                 <td className="px-4 py-3">
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
+                    <DropdownMenuTrigger render={
                       <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg">
                         <MoreHorizontal className="w-3.5 h-3.5" />
                       </Button>
-                    </DropdownMenuTrigger>
+                    } />
                     <DropdownMenuContent align="end" className="w-44">
-                      <DropdownMenuItem asChild>
+                      <DropdownMenuItem render={
                         <Link href={`/purchase-orders/${po.id}`}>View Details</Link>
-                      </DropdownMenuItem>
+                      } />
                       <DropdownMenuItem onClick={() => toast.success("Initiating AI follow-up call...")}>
                         Start AI Follow-up
                       </DropdownMenuItem>

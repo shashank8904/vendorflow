@@ -163,18 +163,18 @@ export default function VendorsPage() {
                   </td>
                   <td className="px-4 py-3">
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
+                      <DropdownMenuTrigger render={
                         <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg">
                           <MoreHorizontal className="w-3.5 h-3.5" />
                         </Button>
-                      </DropdownMenuTrigger>
+                      } />
                       <DropdownMenuContent align="end" className="w-40">
-                        <DropdownMenuItem asChild>
+                        <DropdownMenuItem render={
                           <Link href={`/purchase-orders?vendor=${vendor.id}`} className="flex items-center gap-2">
                             <ExternalLink className="w-3.5 h-3.5" />
                             View Orders
                           </Link>
-                        </DropdownMenuItem>
+                        } />
                         <DropdownMenuItem
                           onClick={() => toast.success(`Calling ${vendor.companyName}...`)}
                           className="flex items-center gap-2"

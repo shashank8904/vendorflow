@@ -61,7 +61,7 @@ export function Navbar() {
 
           {/* Profile */}
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+            <DropdownMenuTrigger render={
               <div role="button" tabIndex={0} className="flex items-center gap-2 h-8 pl-1 pr-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer">
                 <Avatar className="h-6 w-6">
                   <AvatarImage src="" />
@@ -74,7 +74,7 @@ export function Navbar() {
                 </div>
                 <ChevronDown className="w-3 h-3 text-gray-400" />
               </div>
-            </DropdownMenuTrigger>
+            } />
             <DropdownMenuContent align="end" className="w-48">
               <div className="px-2 py-1.5 text-xs text-gray-500 font-medium">
                 suhas@vendorflow.io
