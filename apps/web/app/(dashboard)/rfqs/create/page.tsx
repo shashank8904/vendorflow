@@ -35,7 +35,7 @@ export default function CreateRFQPage() {
           vendorsApi.getAll({ limit: 100, status: "ACTIVE" })
         ]);
         setPR(prRes.data || prRes);
-        setVendors(vendorRes.items || vendorRes.data || []);
+        setVendors(vendorRes.items || (vendorRes as any).data || []);
       } catch (err: any) {
         toast.error("Failed to load PR or vendors");
       } finally {

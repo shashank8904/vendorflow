@@ -21,7 +21,7 @@ export default function CallsPage() {
   const fetchCalls = async () => {
     setLoading(true);
     try {
-      const res = await callsApi.getAll({ search, status: statusFilter !== "all" ? statusFilter : undefined });
+      const res = await callsApi.getAll({ search, status: statusFilter !== "all" ? statusFilter : undefined } as any);
       setCalls(res.items || []);
     } catch (err: any) {
       toast.error(err.message || "Failed to load Call Logs");

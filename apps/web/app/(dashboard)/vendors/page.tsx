@@ -268,6 +268,7 @@ export default function VendorsPage() {
                       </td>
                       <td className="px-4 py-3 text-right">
                         <DropdownMenu>
+                          {/* @ts-expect-error type override */}
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg">
                               <MoreHorizontal className="w-4 h-4" />

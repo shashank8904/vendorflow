@@ -28,7 +28,7 @@ export default function CreatePOPage() {
       
       const po = await purchaseOrdersApi.create(payload);
       toast.success("PO created successfully!");
-      router.push(`/pos/${po.id || po.data?.id}`);
+      router.push(`/pos/${po.id || (po as any).data?.id}`);
     } catch (err: any) {
       toast.error(err.message || "Failed to create PO");
     } finally {

@@ -22,7 +22,7 @@ export default function PODetailPage() {
   const fetchPO = async () => {
     try {
       const res = await purchaseOrdersApi.getById(poId);
-      setPO(res.data || res);
+      setPO(res);
     } catch (err: any) {
       toast.error("Failed to load PO");
     } finally {

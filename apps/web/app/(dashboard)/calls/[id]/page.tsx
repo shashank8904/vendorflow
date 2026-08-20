@@ -21,7 +21,7 @@ export default function CallDetailPage() {
     const fetchCall = async () => {
       try {
         const res = await callsApi.getById(callId);
-        setCall(res.data || res);
+        setCall((res as any).data || res);
       } catch (err: any) {
         toast.error("Failed to load Call details");
       } finally {
