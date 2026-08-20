@@ -101,92 +101,123 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const fbUser = result.user;
-      setUser({
-        uid: fbUser.uid,
-        email: fbUser.email,
-        displayName: fbUser.displayName || "Google User",
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1"}/auth/google`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: fbUser.email, name: fbUser.displayName || "Google User", uid: fbUser.uid })
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to sync Google user with backend");
+      }
+
+      const responseJson = await response.json();
+      const backendUser = responseJson.data.user;
+      
+      const userProfile = {
+        uid: backendUser.id,
+        email: backendUser.email,
+        displayName: backendUser.name || "Google User",
         photoURL: fbUser.photoURL,
         isDemo: false,
-      });
-      toast.success(`Welcome back, ${fbUser.displayName || "User"}!`);
+      };
+
+      if (typeof window !== "undefined") {
+        localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(userProfile));
+        if (responseJson.data.token) localStorage.setItem("vf_token", responseJson.data.token);
+      }
+
+      setUser(userProfile);
+      toast.success(`Welcome back, ${userProfile.displayName}!`);
       router.push("/");
     } catch (error: any) {
       if (error.code === "auth/popup-closed-by-user") {
         toast.info("Google sign-in popup was closed");
       } else {
-        toast.error(error.message || "Failed to sign in with Google");
+        let msg = error.message || "Failed to sign in with Google";
+        if (msg.includes("Database is closing/hidden")) {
+          msg = "Your browser is blocking IndexedDB (common in Incognito/Brave). Please allow cookies/storage for Google login.";
+        }
+        toast.error(msg);
       }
       throw error;
     }
   };
 
   const signInWithEmail = async (email: string, pass: string) => {
-    if (!auth || !configured) {
-      demoLogin(email.split("@")[0] || "Admin");
-      toast.success("Signed in (Demo Mode)", {
-        description: "Configure Firebase keys in .env.local for live auth.",
-      });
-      router.push("/");
-      return;
-    }
-
     try {
-      const result = await signInWithEmailAndPassword(auth, email, pass);
-      const fbUser = result.user;
-      setUser({
-        uid: fbUser.uid,
-        email: fbUser.email,
-        displayName: fbUser.displayName || fbUser.email?.split("@")[0] || "User",
-        photoURL: fbUser.photoURL,
-        isDemo: false,
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1"}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password: pass })
       });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Invalid email or password");
+      }
+
+      const responseJson = await response.json();
+      const fbUser = responseJson.data.user;
+      
+      const userProfile = {
+        uid: fbUser.id,
+        email: fbUser.email,
+        displayName: fbUser.name || fbUser.email?.split("@")[0] || "User",
+        photoURL: null,
+        isDemo: false,
+      };
+
+      if (typeof window !== "undefined") {
+        localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(userProfile));
+        // Also save token if needed
+        if (responseJson.data.token) localStorage.setItem("vf_token", responseJson.data.token);
+      }
+      
+      setUser(userProfile);
       toast.success(`Welcome back!`);
       router.push("/");
     } catch (error: any) {
-      let msg = "Invalid email or password";
-      if (error.code === "auth/user-not-found" || error.code === "auth/wrong-password" || error.code === "auth/invalid-credential") {
-        msg = "Invalid email or password.";
-      } else if (error.code === "auth/too-many-requests") {
-        msg = "Too many failed attempts. Please try again later.";
-      }
-      toast.error(msg);
+      toast.error(error.message || "Invalid email or password.");
       throw error;
     }
   };
 
   const signUpWithEmail = async (email: string, pass: string, name: string) => {
-    if (!auth || !configured) {
-      demoLogin(name || "New User");
-      toast.success("Account created (Demo Mode)", {
-        description: "Configure Firebase keys in .env.local for live auth.",
-      });
-      router.push("/");
-      return;
-    }
-
     try {
-      const result = await createUserWithEmailAndPassword(auth, email, pass);
-      if (name && result.user) {
-        await updateProfile(result.user, { displayName: name });
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1"}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password: pass, userName: name, companyName: name + "'s Company" })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to create account");
       }
-      const fbUser = result.user;
-      setUser({
-        uid: fbUser.uid,
+
+      const responseJson = await response.json();
+      const fbUser = responseJson.data.user;
+      
+      const userProfile = {
+        uid: fbUser.id,
         email: fbUser.email,
-        displayName: name || fbUser.email?.split("@")[0] || "User",
+        displayName: fbUser.name || fbUser.email?.split("@")[0] || "User",
         photoURL: null,
         isDemo: false,
-      });
+      };
+
+      if (typeof window !== "undefined") {
+        localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(userProfile));
+        if (responseJson.data.token) localStorage.setItem("vf_token", responseJson.data.token);
+      }
+      
+      setUser(userProfile);
       toast.success("Account created successfully!");
       router.push("/");
     } catch (error: any) {
-      let msg = "Failed to create account";
-      if (error.code === "auth/email-already-in-use") {
-        msg = "An account with this email already exists.";
-      } else if (error.code === "auth/weak-password") {
-        msg = "Password should be at least 6 characters.";
-      }
-      toast.error(msg);
+      toast.error(error.message || "Failed to create account");
       throw error;
     }
   };

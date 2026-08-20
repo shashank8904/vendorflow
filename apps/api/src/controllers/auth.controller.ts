@@ -13,5 +13,12 @@ export const authController = {
     const data = loginSchema.parse(req.body);
     const result = await authService.login(data);
     res.json({ success: true, data: result });
+  },
+
+  async googleLogin(req: Request, res: Response) {
+    const data = import("../validators/auth.validator").then(v => v.googleLoginSchema.parse(req.body));
+    const parsedData = await data;
+    const result = await authService.googleLogin(parsedData);
+    res.json({ success: true, data: result });
   }
 };

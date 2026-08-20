@@ -1,5 +1,4 @@
-import { prisma } from "../lib/prisma";
-import axios from "axios";
+import prisma from "../lib/prisma";
 
 export const tallyService = {
   async importVendors(companyId: string) {
@@ -11,11 +10,15 @@ export const tallyService = {
     }
 
     // Call local tally connector
-    const response = await axios.get(`${config.connectorUrl}/masters/vendors`, {
+    const response = await fetch(`${config.connectorUrl}/masters/vendors`, {
       headers: { "Authorization": `Bearer ${config.token}` }
     });
 
-    const vendors = response.data;
+    if (!response.ok) {
+      throw new Error("Failed to fetch vendors from Tally");
+    }
+
+    const vendors = await response.json();
     let imported = 0;
 
     for (const v of vendors) {
@@ -60,9 +63,18 @@ export const tallyService = {
     };
 
     try {
-      const response = await axios.post(`${config.connectorUrl}/po/create`, payload, {
-        headers: { "Authorization": `Bearer ${config.token}` }
+      const response = await fetch(`${config.connectorUrl}/po/create`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${config.token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
       });
+
+      if (!response.ok) {
+        throw new Error(`Failed to sync PO: ${response.statusText}`);
+      }
 
       await prisma.purchaseOrder.update({
         where: { id: poId },

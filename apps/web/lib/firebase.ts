@@ -2,6 +2,8 @@ import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
 import {
   getAuth,
   GoogleAuthProvider,
+  inMemoryPersistence,
+  setPersistence,
   type Auth,
 } from "firebase/auth";
 
@@ -35,6 +37,8 @@ if (typeof window !== "undefined") {
   try {
     app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
     auth = getAuth(app);
+    // Use inMemoryPersistence to prevent IndexedDB errors when third-party cookies are blocked (common in Chrome/Brave)
+    setPersistence(auth, inMemoryPersistence).catch(() => {});
   } catch (error) {
     console.warn("Firebase initialization skipped or failed:", error);
   }
