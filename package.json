@@ -16,5 +16,13 @@
   },
   "dependencies": {
     "zod": "^4.4.3"
+  },
+  "allowScripts": {
+    "@prisma/engines": true,
+    "esbuild": true,
+    "prisma": true,
+    "unrs-resolver": true,
+    "@firebase/util": true,
+    "protobufjs": true
   }
 }
