@@ -15,17 +15,20 @@ import {
   ChevronLeft,
   ChevronRight,
   Zap,
+  CheckCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 const navItems = [
   { href: "/", icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/prs", icon: ShoppingCart, label: "Purchase Requests" },
+  { href: "/rfqs", icon: Phone, label: "RFQs" },
+  { href: "/pos", icon: ShoppingCart, label: "Purchase Orders" },
+  { href: "/approvals", icon: CheckCircle, label: "Approvals" },
   { href: "/vendors", icon: Users, label: "Vendors" },
-  { href: "/purchase-orders", icon: ShoppingCart, label: "Purchase Orders" },
-  { href: "/ai-calls", icon: Phone, label: "AI Calls" },
-  { href: "/call-history", icon: History, label: "Call History" },
-  { href: "/analytics", icon: BarChart3, label: "Analytics" },
+  { href: "/calls", icon: History, label: "Call Logs" },
+  { href: "/reports", icon: BarChart3, label: "Reports" },
   { href: "/settings", icon: Settings, label: "Settings" },
 ];
 

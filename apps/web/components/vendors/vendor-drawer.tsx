@@ -8,22 +8,64 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { vendorsApi } from "@/lib/api";
 
 interface VendorDrawerProps {
   open: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-export function VendorDrawer({ open, onClose }: VendorDrawerProps) {
+export function VendorDrawer({ open, onClose, onSuccess }: VendorDrawerProps) {
   const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({
+    name: "",
+    contactPerson: "",
+    phone: "",
+    email: "",
+    address: "",
+    gstNumber: "",
+    notes: "",
+  });
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1000));
-    toast.success("Vendor created successfully");
-    setLoading(false);
-    onClose();
+
+    try {
+      await vendorsApi.create({
+        name: form.name.trim(),
+        contactPerson: form.contactPerson.trim(),
+        phone: form.phone.trim(),
+        email: form.email.trim() || undefined,
+        address: form.address.trim() || undefined,
+        gstNumber: form.gstNumber.trim() || undefined,
+        notes: form.notes.trim() || undefined,
+      });
+
+      toast.success("Vendor added successfully");
+      setForm({
+        name: "",
+        contactPerson: "",
+        phone: "",
+        email: "",
+        address: "",
+        gstNumber: "",
+        notes: "",
+      });
+      onSuccess?.();
+      onClose();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create vendor");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -64,14 +106,28 @@ export function VendorDrawer({ open, onClose }: VendorDrawerProps) {
                 <Label className="text-xs font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
                   <Building2 className="w-3.5 h-3.5" /> Company Name *
                 </Label>
-                <Input required placeholder="Acme Supplies Pvt. Ltd." className="h-9 rounded-xl text-sm" />
+                <Input
+                  required
+                  name="name"
+                  value={form.name}
+                  onChange={handleChange}
+                  placeholder="Acme Supplies Pvt. Ltd."
+                  className="h-9 rounded-xl text-sm"
+                />
               </div>
 
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
                   <User className="w-3.5 h-3.5" /> Contact Person *
                 </Label>
-                <Input required placeholder="Full name" className="h-9 rounded-xl text-sm" />
+                <Input
+                  required
+                  name="contactPerson"
+                  value={form.contactPerson}
+                  onChange={handleChange}
+                  placeholder="Full name"
+                  className="h-9 rounded-xl text-sm"
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -79,13 +135,27 @@ export function VendorDrawer({ open, onClose }: VendorDrawerProps) {
                   <Label className="text-xs font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
                     <Phone className="w-3.5 h-3.5" /> Phone *
                   </Label>
-                  <Input required placeholder="+91 98765 43210" className="h-9 rounded-xl text-sm" />
+                  <Input
+                    required
+                    name="phone"
+                    value={form.phone}
+                    onChange={handleChange}
+                    placeholder="+1 234 567 8900"
+                    className="h-9 rounded-xl text-sm"
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
-                    <Mail className="w-3.5 h-3.5" /> Email *
+                    <Mail className="w-3.5 h-3.5" /> Email
                   </Label>
-                  <Input required type="email" placeholder="contact@company.com" className="h-9 rounded-xl text-sm" />
+                  <Input
+                    type="email"
+                    name="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    placeholder="contact@company.com"
+                    className="h-9 rounded-xl text-sm"
+                  />
                 </div>
               </div>
 
@@ -94,6 +164,9 @@ export function VendorDrawer({ open, onClose }: VendorDrawerProps) {
                   <MapPin className="w-3.5 h-3.5" /> Address
                 </Label>
                 <Textarea
+                  name="address"
+                  value={form.address}
+                  onChange={handleChange}
                   placeholder="Full business address"
                   rows={2}
                   className="rounded-xl text-sm resize-none"
@@ -102,9 +175,15 @@ export function VendorDrawer({ open, onClose }: VendorDrawerProps) {
 
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
-                  <Hash className="w-3.5 h-3.5" /> GST Number
+                  <Hash className="w-3.5 h-3.5" /> GST / Tax Number
                 </Label>
-                <Input placeholder="27AAAPL1234C1Z5" className="h-9 rounded-xl text-sm font-mono" />
+                <Input
+                  name="gstNumber"
+                  value={form.gstNumber}
+                  onChange={handleChange}
+                  placeholder="GSTIN29ABCDE1234F1Z5"
+                  className="h-9 rounded-xl text-sm"
+                />
               </div>
 
               <div className="space-y-1.5">
@@ -112,27 +191,30 @@ export function VendorDrawer({ open, onClose }: VendorDrawerProps) {
                   <FileText className="w-3.5 h-3.5" /> Notes
                 </Label>
                 <Textarea
-                  placeholder="Payment terms, special instructions..."
-                  rows={3}
+                  name="notes"
+                  value={form.notes}
+                  onChange={handleChange}
+                  placeholder="Payment terms, delivery preferences..."
+                  rows={2}
                   className="rounded-xl text-sm resize-none"
                 />
               </div>
-            </form>
 
-            {/* Footer */}
-            <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-border shrink-0">
-              <Button variant="outline" onClick={onClose} className="rounded-xl h-9">
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSave}
-                disabled={loading}
-                className="rounded-xl h-9 bg-indigo-600 hover:bg-indigo-700 text-white"
-              >
-                {loading && <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />}
-                {loading ? "Saving..." : "Save Vendor"}
-              </Button>
-            </div>
+              {/* Actions */}
+              <div className="pt-2 flex items-center gap-2 justify-end">
+                <Button variant="outline" type="button" onClick={onClose} className="rounded-xl h-9">
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="rounded-xl h-9 bg-indigo-600 hover:bg-indigo-700 text-white"
+                >
+                  {loading && <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />}
+                  {loading ? "Saving..." : "Add Vendor"}
+                </Button>
+              </div>
+            </form>
           </motion.div>
         </>
       )}

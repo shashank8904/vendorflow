@@ -30,7 +30,12 @@ interface StatusBadgeProps {
 }
 
 export function StatusBadge({ status, className }: StatusBadgeProps) {
-  const config = statusConfig[status] ?? { label: status, className: "bg-gray-100 text-gray-600" };
+  const normalizedKey = (status || "").toLowerCase().replace("-", "_");
+  const config = statusConfig[normalizedKey] ?? {
+    label: (status || "").toUpperCase(),
+    className: "bg-gray-100 text-gray-600 ring-gray-400/20 dark:bg-gray-800 dark:text-gray-400",
+  };
+
   return (
     <span
       className={cn(

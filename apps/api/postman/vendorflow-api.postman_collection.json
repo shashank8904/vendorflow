@@ -1,0 +1,625 @@
+{
+	"info": {
+		"_postman_id": "vendorflow-api-collection",
+		"name": "VendorFlow API",
+		"description": "Production-ready Postman collection for VendorFlow Backend API with clean architecture.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3001/api/v1",
+			"type": "string"
+		},
+		{
+			"key": "companyId",
+			"value": "cmst2b7g300003tq26vsar2se",
+			"type": "string"
+		},
+		{
+			"key": "vendorId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "poId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "notificationId",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Health",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/health",
+							"host": ["{{baseUrl}}"],
+							"path": ["health"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Vendors",
+			"item": [
+				{
+					"name": "Create Vendor",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Company-Id",
+								"value": "{{companyId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Apex Industrial Supplies\",\n  \"contactPerson\": \"Sarah Connor\",\n  \"phone\": \"9876543220\",\n  \"email\": \"sarah@apexsupplies.com\",\n  \"address\": \"100 Cyberdyne Way, Los Angeles, CA\",\n  \"gstNumber\": \"GST123456789\",\n  \"notes\": \"Key hardware vendor\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/vendors",
+							"host": ["{{baseUrl}}"],
+							"path": ["vendors"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Vendors",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Company-Id",
+								"value": "{{companyId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/vendors?page=1&limit=10&sort=createdAt&order=desc&status=ACTIVE",
+							"host": ["{{baseUrl}}"],
+							"path": ["vendors"],
+							"query": [
+								{ "key": "page", "value": "1" },
+								{ "key": "limit", "value": "10" },
+								{ "key": "sort", "value": "createdAt" },
+								{ "key": "order", "value": "desc" },
+								{ "key": "status", "value": "ACTIVE" }
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Vendor By ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Company-Id",
+								"value": "{{companyId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/vendors/{{vendorId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["vendors", "{{vendorId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Vendor",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Company-Id",
+								"value": "{{companyId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"contactPerson\": \"Sarah C. Reese\",\n  \"phone\": \"9876543221\",\n  \"notes\": \"Updated contact details\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/vendors/{{vendorId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["vendors", "{{vendorId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Vendor (Soft Delete)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-Company-Id",
+								"value": "{{companyId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/vendors/{{vendorId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["vendors", "{{vendorId}}"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Purchase Orders",
+			"item": [
+				{
+					"name": "Create Purchase Order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Company-Id",
+								"value": "{{companyId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"vendorId\": \"{{vendorId}}\",\n  \"description\": \"500x Stainless Steel Fasteners\",\n  \"amount\": 15200.00,\n  \"expectedDelivery\": \"2026-09-15T00:00:00.000Z\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/purchase-orders",
+							"host": ["{{baseUrl}}"],
+							"path": ["purchase-orders"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Purchase Orders",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Company-Id",
+								"value": "{{companyId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/purchase-orders?page=1&limit=10&sort=createdAt&order=desc",
+							"host": ["{{baseUrl}}"],
+							"path": ["purchase-orders"],
+							"query": [
+								{ "key": "page", "value": "1" },
+								{ "key": "limit", "value": "10" },
+								{ "key": "sort", "value": "createdAt" },
+								{ "key": "order", "value": "desc" }
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Purchase Order By ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Company-Id",
+								"value": "{{companyId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/purchase-orders/{{poId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["purchase-orders", "{{poId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Purchase Order",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Company-Id",
+								"value": "{{companyId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"description\": \"500x Stainless Steel Fasteners (Grade A)\",\n  \"amount\": 16000.00\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/purchase-orders/{{poId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["purchase-orders", "{{poId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update PO Status",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Company-Id",
+								"value": "{{companyId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"CONFIRMED\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/purchase-orders/{{poId}}/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["purchase-orders", "{{poId}}", "status"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Purchase Order (Soft Delete)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-Company-Id",
+								"value": "{{companyId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/purchase-orders/{{poId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["purchase-orders", "{{poId}}"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Dashboard",
+			"item": [
+				{
+					"name": "Get Summary",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Company-Id",
+								"value": "{{companyId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/dashboard/summary",
+							"host": ["{{baseUrl}}"],
+							"path": ["dashboard", "summary"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Activity",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Company-Id",
+								"value": "{{companyId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/dashboard/activity",
+							"host": ["{{baseUrl}}"],
+							"path": ["dashboard", "activity"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Metrics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Company-Id",
+								"value": "{{companyId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/dashboard/metrics",
+							"host": ["{{baseUrl}}"],
+							"path": ["dashboard", "metrics"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Analytics",
+			"item": [
+				{
+					"name": "Get Monthly Orders",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Company-Id",
+								"value": "{{companyId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/analytics/monthly-orders",
+							"host": ["{{baseUrl}}"],
+							"path": ["analytics", "monthly-orders"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Vendor Performance",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Company-Id",
+								"value": "{{companyId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/analytics/vendor-performance",
+							"host": ["{{baseUrl}}"],
+							"path": ["analytics", "vendor-performance"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Delay Analysis",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Company-Id",
+								"value": "{{companyId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/analytics/delay-analysis",
+							"host": ["{{baseUrl}}"],
+							"path": ["analytics", "delay-analysis"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Status Distribution",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Company-Id",
+								"value": "{{companyId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/analytics/status-distribution",
+							"host": ["{{baseUrl}}"],
+							"path": ["analytics", "status-distribution"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Call Statistics (Placeholder)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Company-Id",
+								"value": "{{companyId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/analytics/call-statistics",
+							"host": ["{{baseUrl}}"],
+							"path": ["analytics", "call-statistics"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Notifications",
+			"item": [
+				{
+					"name": "Create Notification",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Company-Id",
+								"value": "{{companyId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"PO Confirmed\",\n  \"message\": \"PO-20260814-0001 has been confirmed by vendor.\",\n  \"type\": \"SUCCESS\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/notifications",
+							"host": ["{{baseUrl}}"],
+							"path": ["notifications"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Notifications",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Company-Id",
+								"value": "{{companyId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/notifications?page=1&limit=20&isRead=false",
+							"host": ["{{baseUrl}}"],
+							"path": ["notifications"],
+							"query": [
+								{ "key": "page", "value": "1" },
+								{ "key": "limit", "value": "20" },
+								{ "key": "isRead", "value": "false" }
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Unread Count",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Company-Id",
+								"value": "{{companyId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/notifications/unread-count",
+							"host": ["{{baseUrl}}"],
+							"path": ["notifications", "unread-count"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Mark Notification as Read",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "X-Company-Id",
+								"value": "{{companyId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/notifications/{{notificationId}}/read",
+							"host": ["{{baseUrl}}"],
+							"path": ["notifications", "{{notificationId}}", "read"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Mark All Notifications as Read",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "X-Company-Id",
+								"value": "{{companyId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/notifications/read-all",
+							"host": ["{{baseUrl}}"],
+							"path": ["notifications", "read-all"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Notification",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-Company-Id",
+								"value": "{{companyId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/notifications/{{notificationId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["notifications", "{{notificationId}}"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Audit Logs",
+			"item": [
+				{
+					"name": "List Audit Logs",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Company-Id",
+								"value": "{{companyId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/audit-logs?page=1&limit=20&sort=createdAt&order=desc",
+							"host": ["{{baseUrl}}"],
+							"path": ["audit-logs"],
+							"query": [
+								{ "key": "page", "value": "1" },
+								{ "key": "limit", "value": "20" },
+								{ "key": "sort", "value": "createdAt" },
+								{ "key": "order", "value": "desc" }
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

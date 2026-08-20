@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/lib/auth-context";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -27,19 +28,21 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable}`} suppressHydrationWarning>
       <body className="min-h-screen bg-background font-sans antialiased">
-        <TooltipProvider>
-          {children}
-          <Toaster
-            position="bottom-right"
-            toastOptions={{
-              style: {
-                borderRadius: "12px",
-                border: "1px solid hsl(var(--border))",
-                fontFamily: "Inter, sans-serif",
-              },
-            }}
-          />
-        </TooltipProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            {children}
+            <Toaster
+              position="bottom-right"
+              toastOptions={{
+                style: {
+                  borderRadius: "12px",
+                  border: "1px solid hsl(var(--border))",
+                  fontFamily: "Inter, sans-serif",
+                },
+              }}
+            />
+          </TooltipProvider>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -6,74 +6,381 @@ datasource db {
   provider = "postgresql"
 }
 
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  ADMIN
+  PROCUREMENT_MANAGER
+  REQUESTER
+  APPROVER
+  VIEWER
+  EMPLOYEE
+}
+
+enum VendorStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ItemType {
+  STOCK
+  SERVICE
+}
+
+enum PRStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+enum RFQStatus {
+  DRAFT
+  SENT
+  IN_PROGRESS
+  CLOSED
+}
+
+enum QuotationStatus {
+  SUBMITTED
+  SHORTLISTED
+  REJECTED
+}
+
+enum ApprovalRuleType {
+  VALUE_BASED
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum PurchaseOrderStatus {
+  DRAFT
+  PENDING
+  CONFIRMED
+  SENT
+  ACKNOWLEDGED
+  PARTIALLY_RECEIVED
+  DELAYED
+  CANCELLED
+  CLOSED
+}
+
+enum TallySyncStatus {
+  NOT_SYNCED
+  SYNCED
+  FAILED
+}
+
+enum CallDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum CallIntent {
+  RFQ_QUOTE
+  PO_ACK
+  DELIVERY_CONFIRMATION
+  OTHER
+}
+
+enum CallStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+enum SyncLogType {
+  MASTER_SYNC
+  PO_CREATE
+  PO_READ
+}
+
+enum SyncLogStatus {
+  SUCCESS
+  FAILED
+}
+
+enum NotificationType {
+  INFO
+  WARNING
+  SUCCESS
+  ERROR
+}
+
+// ─── Models ──────────────────────────────────────────────────────────────────
+
 model Company {
-  id             String          @id @default(cuid())
-  name           String
-  industry       String?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  purchaseOrders PurchaseOrder[]
-  users          User[]
-  vendors        Vendor[]
+  id               String             @id @default(cuid())
+  name             String
+  domain           String?
+  industry         String?
+  tallyConfig      Json?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  
+  users            User[]
+  vendors          Vendor[]
+  items            Item[]
+  purchaseRequests PurchaseRequest[]
+  rfqs             RFQ[]
+  approvalWorkflows ApprovalWorkflow[]
+  purchaseOrders   PurchaseOrder[]
+  calls            Call[]
+  tallySyncLogs    TallySyncLog[]
+  notifications    Notification[]
+  auditLogs        AuditLog[]
 }
 
 model User {
-  id           String   @id @default(cuid())
-  companyId    String
-  name         String
-  email        String   @unique
-  passwordHash String
-  role         UserRole @default(EMPLOYEE)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  company      Company  @relation(fields: [companyId], references: [id])
+  id               String       @id @default(cuid())
+  companyId        String
+  name             String
+  email            String       @unique
+  passwordHash     String
+  role             UserRole     @default(REQUESTER)
+  active           Boolean      @default(true)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  
+  company          Company      @relation(fields: [companyId], references: [id])
+  prs              PurchaseRequest[] @relation("PRRequester")
+  approvalRequests ApprovalRequest[] @relation("Approver")
+  notifications    Notification[]
+  
+  @@index([companyId])
 }
 
 model Vendor {
-  id             String          @id @default(cuid())
-  companyId      String
-  name           String
-  email          String?
-  phone          String
-  address        String?
-  status         VendorStatus    @default(ACTIVE)
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  calls          Call[]
-  purchaseOrders PurchaseOrder[]
-  company        Company         @relation(fields: [companyId], references: [id])
+  id                 String          @id @default(cuid())
+  companyId          String
+  name               String
+  code               String?
+  gstNumber          String?
+  pan                String?
+  contactPerson      String?
+  primaryContactName String?
+  phone              String
+  phones             String[]
+  email              String?
+  address            String?
+  category           String?
+  paymentTerms       String?
+  defaultLeadTimeDays Int?
+  rating             Float?
+  notes              String?
+  tallyLedgerId      String?
+  tallySyncStatus    TallySyncStatus @default(NOT_SYNCED)
+  status             VendorStatus    @default(ACTIVE)
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  deletedAt          DateTime?
+  
+  company            Company         @relation(fields: [companyId], references: [id])
+  quotations         Quotation[]
+  purchaseOrders     PurchaseOrder[]
+  calls              Call[]
+
+  @@index([companyId, deletedAt])
+  @@index([companyId, email])
+  @@index([companyId, phone])
+}
+
+model Item {
+  id              String          @id @default(cuid())
+  companyId       String
+  name            String
+  code            String?
+  hsnSac          String?
+  uom             String?
+  taxRatePercent  Float?
+  type            ItemType        @default(STOCK)
+  tallyStockItemId String?
+  tallySyncStatus TallySyncStatus @default(NOT_SYNCED)
+  createdAt       DateTime        @default(now())
+  deletedAt       DateTime?
+  
+  company         Company         @relation(fields: [companyId], references: [id])
+  prItems         PRItem[]
+  poItems         POItem[]
+  
+  @@index([companyId, deletedAt])
+}
+
+model PurchaseRequest {
+  id              String       @id @default(cuid())
+  companyId       String
+  prNumber        String       @unique
+  requesterUserId String
+  department      String?
+  status          PRStatus     @default(DRAFT)
+  requiredByDate  DateTime
+  budgetCode      String?
+  notes           String?
+  createdAt       DateTime     @default(now())
+  deletedAt       DateTime?
+  
+  company         Company      @relation(fields: [companyId], references: [id])
+  requester       User         @relation("PRRequester", fields: [requesterUserId], references: [id])
+  items           PRItem[]
+  rfqs            RFQ[]
+  
+  @@index([companyId, deletedAt])
+}
+
+model PRItem {
+  id                   String           @id @default(cuid())
+  prId                 String
+  itemId               String?
+  freeTextDescription  String?
+  quantity             Float
+  unit                 String?
+  estimatedRate        Float?
+  estimatedTotal       Float?
+  
+  pr                   PurchaseRequest  @relation(fields: [prId], references: [id], onDelete: Cascade)
+  item                 Item?            @relation(fields: [itemId], references: [id])
+}
+
+model RFQ {
+  id               String       @id @default(cuid())
+  companyId        String
+  prId             String
+  status           RFQStatus    @default(DRAFT)
+  selectedVendorIds String[]
+  createdAt        DateTime     @default(now())
+  
+  company          Company      @relation(fields: [companyId], references: [id])
+  pr               PurchaseRequest @relation(fields: [prId], references: [id])
+  quotations       Quotation[]
+}
+
+model Quotation {
+  id              String          @id @default(cuid())
+  rfqId           String
+  vendorId        String
+  price           Float?
+  taxPercent      Float?
+  leadTimeDays    Int?
+  moq             Float?
+  paymentTerms    String?
+  currency        String          @default("INR")
+  rawTranscript   String?
+  confidenceScore Float?
+  status          QuotationStatus @default(SUBMITTED)
+  createdAt       DateTime        @default(now())
+  
+  rfq             RFQ             @relation(fields: [rfqId], references: [id])
+  vendor          Vendor          @relation(fields: [vendorId], references: [id])
+}
+
+model ApprovalWorkflow {
+  id              String            @id @default(cuid())
+  companyId       String
+  ruleType        ApprovalRuleType  @default(VALUE_BASED)
+  thresholds      Json
+  approverUserIds String[]
+  createdAt       DateTime          @default(now())
+  
+  company         Company           @relation(fields: [companyId], references: [id])
+  requests        ApprovalRequest[]
+}
+
+model ApprovalRequest {
+  id              String           @id @default(cuid())
+  workflowId      String
+  entityType      String           // "PR" or "PO"
+  entityId        String
+  currentStep     Int              @default(1)
+  status          ApprovalStatus   @default(PENDING)
+  approverUserId  String
+  comments        String?
+  createdAt       DateTime         @default(now())
+  
+  workflow        ApprovalWorkflow @relation(fields: [workflowId], references: [id])
+  approver        User             @relation("Approver", fields: [approverUserId], references: [id])
 }
 
 model PurchaseOrder {
-  id               String              @id @default(cuid())
-  companyId        String
-  vendorId         String
-  poNumber         String              @unique
-  description      String?
-  amount           Float
-  expectedDelivery DateTime?
-  status           PurchaseOrderStatus @default(PENDING)
-  createdAt        DateTime            @default(now())
-  updatedAt        DateTime            @updatedAt
-  calls            Call[]
-  company          Company             @relation(fields: [companyId], references: [id])
-  vendor           Vendor              @relation(fields: [vendorId], references: [id])
+  id                     String              @id @default(cuid())
+  companyId              String
+  vendorId               String
+  poNumber               String              @unique
+  description            String?
+  amount                 Float?
+  totalValue             Float               @default(0)
+  taxTotal               Float               @default(0)
+  grandTotal             Float               @default(0)
+  expectedDelivery       DateTime?
+  requestedDeliveryDate  DateTime?
+  confirmedDeliveryDate  DateTime?
+  plantAddress           String?
+  status                 PurchaseOrderStatus @default(PENDING)
+  tallyVoucherId         String?
+  tallySyncStatus        TallySyncStatus     @default(NOT_SYNCED)
+  tallyLastError         String?
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+  deletedAt              DateTime?
+  
+  company                Company             @relation(fields: [companyId], references: [id])
+  vendor                 Vendor              @relation(fields: [vendorId], references: [id])
+  items                  POItem[]
+  calls                  Call[]
+  
+  @@index([companyId, deletedAt])
+  @@index([companyId, status])
+  @@index([companyId, vendorId])
+}
+
+model POItem {
+  id                   String        @id @default(cuid())
+  poId                 String
+  itemId               String?
+  description          String?
+  quantity             Float
+  rate                 Float
+  taxPercent           Float
+  lineTotal            Float
+  
+  po                   PurchaseOrder @relation(fields: [poId], references: [id], onDelete: Cascade)
+  item                 Item?         @relation(fields: [itemId], references: [id])
 }
 
 model Call {
-  id              String        @id @default(cuid())
-  purchaseOrderId String
-  vendorId        String
-  status          CallStatus    @default(PENDING)
-  transcript      String?
-  startedAt       DateTime?
-  endedAt         DateTime?
-  duration        Int?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
-  vendor          Vendor        @relation(fields: [vendorId], references: [id])
-  result          CallResult?
+  id                 String        @id @default(cuid())
+  companyId          String
+  purchaseOrderId    String?
+  vendorId           String?
+  relatedEntityType  String?       // "RFQ", "PO", "VENDOR"
+  relatedEntityId    String?
+  direction          CallDirection @default(OUTBOUND)
+  intent             CallIntent    @default(OTHER)
+  status             CallStatus    @default(PENDING)
+  phoneNumber        String?
+  transcript         String?
+  recordingUrl       String?
+  dispositionCode    String?
+  structuredData     Json?
+  confidenceScore    Float?
+  exceptionFlag      Boolean       @default(false)
+  startedAt          DateTime?
+  endedAt            DateTime?
+  duration           Int?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  
+  company            Company       @relation(fields: [companyId], references: [id])
+  purchaseOrder      PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id])
+  vendor             Vendor?       @relation(fields: [vendorId], references: [id])
+  result             CallResult?
+
+  @@index([purchaseOrderId])
+  @@index([vendorId])
 }
 
 model CallResult {
@@ -90,26 +397,49 @@ model CallResult {
   call         Call      @relation(fields: [callId], references: [id])
 }
 
-enum UserRole {
-  ADMIN
-  EMPLOYEE
+model TallySyncLog {
+  id               String        @id @default(cuid())
+  companyId        String
+  type             SyncLogType
+  status           SyncLogStatus
+  payloadSummary   String?
+  errorMessage     String?
+  createdAt        DateTime      @default(now())
+  
+  company          Company       @relation(fields: [companyId], references: [id])
 }
 
-enum VendorStatus {
-  ACTIVE
-  INACTIVE
+model Notification {
+  id        String           @id @default(cuid())
+  companyId String
+  userId    String?
+  title     String
+  message   String
+  type      NotificationType @default(INFO)
+  isRead    Boolean          @default(false)
+  metadata  Json?
+  createdAt DateTime         @default(now())
+  readAt    DateTime?
+  deletedAt DateTime?
+  company   Company          @relation(fields: [companyId], references: [id])
+  user      User?            @relation(fields: [userId], references: [id])
+
+  @@index([companyId, deletedAt, isRead])
+  @@index([companyId, userId])
 }
 
-enum PurchaseOrderStatus {
-  PENDING
-  CONFIRMED
-  DELAYED
-  CANCELLED
-}
+model AuditLog {
+  id        String   @id @default(cuid())
+  companyId String
+  userId    String?
+  action    String
+  entity    String
+  entityId  String
+  changes   Json?
+  ipAddress String?
+  createdAt DateTime @default(now())
+  company   Company  @relation(fields: [companyId], references: [id])
 
-enum CallStatus {
-  PENDING
-  IN_PROGRESS
-  COMPLETED
-  FAILED
+  @@index([companyId, entity])
+  @@index([companyId, createdAt])
 }
